@@ -97,7 +97,6 @@ CREATE TABLE `detalle_pedido`(
 
 CREATE TABLE `factura`(
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `cliente` VARCHAR(100) NOT NULL,
     `total` DECIMAL(10, 2) NOT NULL,
     `fecha` DATETIME NOT NULL,
     `pedido_id` INT NOT NULL,
