@@ -59,11 +59,6 @@ VALUES(1, 1, 5000),
 (3, 2, 14750),  
 (3, 3, 20500);
 
-INSERT INTO producto (nombre, tipo_producto_id)
-VALUES('Coca-Cola', 1),
-('Pizza Jamon Queso', 2),
-('Papas Fritas', 3);
-
 INSERT INTO detalle_pedido (cantidad, pedido_id, producto_presentacion_id, tipo_combo)
 VALUES(1, 1, 1, 'Producto individual'), -- Coca-Cola, Pequena
 (1, 2, 6, 'Combo'), -- Jamon Queso, Grande
@@ -79,9 +74,7 @@ INSERT INTO ingrediente (nombre, stock, precio) -- Stock = Kg, precio = por Kg
 VALUES('Queso Mozzarella', 20, 18500),
 ('Jamon', 15, 22000),
 ('Salsa de Tomate', 10, 9500),
-('Harina de Trigo', 50, 3800),
 ('Aceite de Oliva', 8, 26000),
-('Sal', 3, 1800),
 ('Oregano', 2, 14000),
 ('Champinones', 6, 13500),
 ('Cebolla', 7, 2400),
@@ -94,6 +87,11 @@ VALUES('Queso Mozzarella', 20, 18500),
 ('Albahaca', 2, 15000),
 ('Tocino', 6, 20000),
 ('Aceitunas Negras', 4, 19000);
+
+INSERT INTO ingrediente_producto (producto_id, ingrediente_id)
+VALUES(2, 1),
+(2, 2),
+(2, 3);
 
 INSERT INTO ingrediente_extra (cantidad, detalle_pedido_id, ingrediente_id) -- Cantidad = libras
 VALUES(2, 2, 1),

@@ -14,9 +14,7 @@ DROP TABLE IF EXISTS ingrediente_extra;
 
 DROP TABLE IF EXISTS tipo_cliente;
 
-DROP TABLE IF EXISTS ingrediente;
-
-DROP TABLE IF EXISTS producto_presentacion;
+DROP TABLE IF EXISTS ingrediente_producto;
 
 DROP TABLE IF EXISTS producto_combo;
 
@@ -24,18 +22,21 @@ DROP TABLE IF EXISTS combo;
 
 DROP TABLE IF EXISTS detalle_pedido;
 
-DROP TABLE IF EXISTS producto;
-
-DROP TABLE IF EXISTS tipo_producto;
-
 DROP TABLE IF EXISTS cliente;
 
 DROP TABLE IF EXISTS pedido;
 
 DROP TABLE IF EXISTS metodo_pago;
 
-DROP TABLE IF EXISTS presentacion;
+DROP TABLE IF EXISTS producto_presentacion;
 
+DROP TABLE IF EXISTS producto;
+
+DROP TABLE IF EXISTS tipo_producto;
+
+DROP TABLE IF EXISTS ingrediente;
+
+DROP TABLE IF EXISTS presentacion;
 
 -- Crear tablas
 
@@ -111,6 +112,12 @@ CREATE TABLE `ingrediente`(
     `precio` DECIMAL(10, 2) NOT NULL
 );
 
+CREATE TABLE `ingrediente_producto` (
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `producto_id` INT NOT NULL,
+    `ingrediente_id` INT NOT NULL
+);
+
 CREATE TABLE `ingrediente_extra`(
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `cantidad` INT NOT NULL,
@@ -142,6 +149,10 @@ ALTER TABLE
 
 ALTER TABLE
     `detalle_pedido` ADD CONSTRAINT `detalle_pedido_pedido_id` FOREIGN KEY(`pedido_id`) REFERENCES `pedido`(`id`);
+
+ALTER TABLE `ingrediente_producto` ADD CONSTRAINT `ingrediente_producto_ingrediente_id` FOREIGN KEY(`ingrediente_id`) REFERENCES `ingrediente`(`id`);
+
+ALTER TABLE `ingrediente_producto` ADD CONSTRAINT `ingrediente_producto_producto_id` FOREIGN KEY(`producto_id`) REFERENCES `producto`(`id`);
 
 ALTER TABLE
     `ingrediente_extra` ADD CONSTRAINT `ingrediente_extra_detalle_pedido_id` FOREIGN KEY(`detalle_pedido_id`) REFERENCES `detalle_pedido`(`id`);
