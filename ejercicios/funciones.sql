@@ -8,32 +8,32 @@ DELIMITER $$
 DROP FUNCTION IF EXISTS fn_calcular_subtotal_pizza $$
 
 CREATE FUNCTION fn_calcular_subtotal_pizza(
-    p_producto_id INT,
-    p_presentacion_id INT
+    p_pro_pre_id INT
 )
 RETURNS DECIMAL(10,2)
 NOT DETERMINISTIC
 READS SQL DATA
 BEGIN
+    DECLARE p_producto_id INT;
     DECLARE p_subtotal DECIMAL(10,2);
     DECLARE p_precio_base DECIMAL(10,2);
     DECLARE p_precio_ingredientes DECIMAL(10,2);
-    
-    IF NOT EXISTS (SELECT 1 FROM producto WHERE id = p_producto_id AND tipo_producto_id = 2) THEN
-        SIGNAL SQLSTATE '40002'
-            SET MESSAGE_TEXT = 'El producto seleccionado no existe o no es una pizza.'; -- Verfica que exista en alguna fila, si no, lanza error
-    END IF;
 
     IF NOT EXISTS (
         SELECT 1 FROM producto_presentacion 
-        WHERE producto_id = p_producto_id AND id = p_presentacion_id) THEN
+        WHERE id = p_pro_pre_id) THEN
         SIGNAL SQLSTATE '40002'
             SET MESSAGE_TEXT = 'La presentacion seleccionada no existe.'; -- Verfica que exista en alguna fila, si no, lanza error
     END IF;    
 
+    SET p_producto_id = (
+        SELECT producto_id FROM producto_presentacion
+        WHERE id = p_pro_pre_id
+    );
+
     SET p_precio_base = (
         SELECT precio FROM producto_presentacion
-        WHERE id = p_presentacion_id
+        WHERE id = p_pro_pre_id
     );
 
     SET p_precio_ingredientes = (
@@ -49,7 +49,7 @@ END $$
 
 DELIMITER ;
 
-SELECT fn_calcular_subtotal_pizza(2, 4) AS subtotal;
+SELECT fn_calcular_subtotal_pizza(4) AS subtotal;
 
 SELECT 
     pro.nombre AS Producto,
@@ -110,3 +110,42 @@ DELIMITER ;
 SELECT fn_descuento_por_cantidad(6,5000) AS Total;
 
 SELECT 6 * 5000 AS total -- Revisar valores totales sin descuento
+
+-- 3
+DELIMITER $$
+
+DROP FUNCTION IF EXISTS fn_precio_final_pedido $$
+
+CREATE FUNCTION fn_precio_final_pedido(
+    p_pedido_id INT
+)
+RETURNS DECIMAL(10,2)
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE p_producto INT;
+    DECLARE p_precio DECIMAL(10,2);
+    DECLARE descuento DECIMAL(10,2);
+    DECLARE p_cantidad INT;
+
+    SET p_producto = (
+        SELECT producto_presentacion_id FROM detalle_pedido
+        WHERE pedido_id = p_pedido_id
+    );
+
+    SET p_cantidad = (
+        SELECT cantidad FROM detalle_pedido
+        WHERE pedido_id = p_pedido_id
+    );
+
+    SET p_precio = fn_calcular_subtotal_pizza(p_producto);
+
+    SET descuento = fn_descuento_por_cantidad(p_cantidad, p_precio);
+
+    RETURN descuento;
+
+END $$
+
+DELIMITER ;
+
+SELECT fn_precio_final_pedido(3) AS Total;
