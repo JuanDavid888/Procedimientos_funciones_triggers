@@ -63,3 +63,50 @@ JOIN ingrediente ing
 JOIN ingrediente_producto ing_pro ON ing.id = ing_pro.ingrediente_id
 WHERE pro.id = 2 AND pro_pre.id = 4
 GROUP BY Producto, Presentacion, Precio_Producto;
+
+-- 2
+DELIMITER $$
+
+DROP FUNCTION IF EXISTS fn_descuento_por_cantidad $$
+
+CREATE FUNCTION fn_descuento_por_cantidad(
+    p_cantidad INT,
+    p_precio_unitario DECIMAL(10,2)
+)
+RETURNS DECIMAL(10,2)
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE total DECIMAL(10,2);
+    DECLARE descuento DECIMAL(10,2);
+    DECLARE total_final DECIMAL(10,2);
+
+    IF p_cantidad <= 0 THEN
+        SIGNAL SQLSTATE '40001'
+            SET MESSAGE_TEXT = 'La cantidad debe ser mayor a 0'; -- Verifica que la cantidad este positiva, si no, muestra error
+    END IF;
+
+    IF p_precio_unitario <= 0 THEN
+        SIGNAL SQLSTATE '40001'
+            SET MESSAGE_TEXT = 'El precio debe ser mayor a 0'; -- Verifica que el precio este positivo, si no, muestra error
+    END IF;
+
+    SET total = p_cantidad * p_precio_unitario;
+
+    IF p_cantidad >= 5 THEN
+        SET descuento = total * 0.10;
+    ELSE
+        SET descuento = 0.00;
+    END IF;
+
+    SET total_final = total - descuento;
+
+    RETURN total_final;
+
+END $$
+
+DELIMITER ;
+
+SELECT fn_descuento_por_cantidad(6,5000) AS Total;
+
+SELECT 6 * 5000 AS total -- Revisar valores totales sin descuento
