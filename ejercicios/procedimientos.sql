@@ -244,6 +244,8 @@ BEGIN
 
     DELETE FROM detalle_pedido WHERE pedido_id = p_pedido_id;
 
+    DELETE FROM factura WHERE pedido_id = p_pedido_id;
+
     SELECT cl.nombre, mp.nombre, pe.estado
     FROM pedido pe
     JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
@@ -261,3 +263,54 @@ SELECT cl.nombre, mp.nombre, pe.estado
     JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
     JOIN cliente cl ON cl.id = pe.cliente_id
     WHERE pe.id = 1;
+
+-- 5
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS ps_facturar_pedido$$
+
+CREATE PROCEDURE ps_facturar_pedido(
+    IN p_pedido_id INT
+)
+BEGIN
+    DECLARE v_factura_id INT;
+    DECLARE p_total DECIMAL(10,4);
+    DECLARE p_cliente_id INT;
+
+    IF NOT EXISTS (SELECT 1 FROM pedido WHERE id = p_pedido_id) THEN
+        SIGNAL SQLSTATE '40002'
+            SET MESSAGE_TEXT = 'El pedido seleccionado no existe.'; -- Verfica que exista en alguna fila, si no, lanza error
+    END IF;
+
+    SET p_total = (
+        SELECT SUM(dp.cantidad * pro_pre.precio)
+        FROM detalle_pedido dp
+        JOIN producto_presentacion pro_pre ON pro_pre.id = dp.producto_presentacion_id
+        WHERE dp.pedido_id = p_pedido_id);
+
+    SET p_cliente_id = (
+        SELECT cliente_id FROM pedido WHERE id = p_pedido_id
+    );
+
+    INSERT INTO factura(total, fecha, pedido_id, cliente_id)
+    VALUES(p_total, NOW(), p_pedido_id, p_cliente_id);
+    SET v_factura_id = LAST_INSERT_ID();
+
+    SELECT * FROM factura WHERE id = v_factura_id;
+
+END $$
+
+DELIMITER ;
+
+CALL ps_facturar_pedido(3)
+
+SELECT
+    dp.pedido_id AS Pedido_id,
+    dp.cantidad AS Cantidad,
+    pro.nombre AS Productos,
+    SUM(dp.cantidad * pro_pre.precio) AS Precio
+FROM detalle_pedido dp
+JOIN producto_presentacion pro_pre ON pro_pre.id = dp.producto_presentacion_id
+JOIN producto pro ON pro.id = pro_pre.producto_id
+WHERE dp.pedido_id = 2
+GROUP BY Pedido_id, Cantidad, Productos;
