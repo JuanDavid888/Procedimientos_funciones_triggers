@@ -143,3 +143,83 @@ SELECT
 FROM producto pro
 JOIN producto_presentacion pro_pre ON pro_pre.producto_id = pro.id
 WHERE pro.id = 1 AND pro_pre.presentacion_id = 3;
+
+-- 3
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS ps_generar_pedido $$
+
+CREATE PROCEDURE ps_generar_pedido(
+    IN p_cliente_id INT,
+    IN p_presentacion_id INT,
+    IN p_metodo_pago_id INT
+)
+BEGIN
+    DECLARE v_pedido_id INT;
+    DECLARE v_precio DECIMAL(10,2);
+
+    -- Manejador de errores
+    DECLARE v_error_msg VARCHAR(255) DEFAULT '';
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET v_error_msg = 'Error al ejecutar la función. Revise los datos de entrada.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_msg;
+    END;
+
+    START TRANSACTION;
+
+    -- Obtener precio desde producto_presentacion
+    SELECT precio INTO v_precio
+    FROM producto_presentacion
+    WHERE id = p_presentacion_id;
+
+    IF v_precio IS NULL THEN
+        SET v_error_msg = 'No se encontró precio para la presentación.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_error_msg;
+    END IF;
+
+    -- Insertar pedido
+    INSERT INTO pedido (fecha_recogida, total, cliente_id, metodo_pago_id)
+    VALUES (NOW(), v_precio, p_cliente_id, p_metodo_pago_id);
+    SET v_pedido_id = LAST_INSERT_ID();
+
+    -- Insertar detalle
+    INSERT INTO detalle_pedido (cantidad, pedido_id, producto_presentacion_id, tipo_combo)
+    VALUES (1, v_pedido_id, p_presentacion_id, 'Producto individual');
+
+    COMMIT;
+
+    -- Mostrar información del producto
+    SELECT 
+        cl.nombre AS Cliente,
+        pro.nombre AS Producto,
+        pro_pre.precio AS Precio,
+        mp.nombre AS Metodo_Pago
+    FROM pedido pe
+    JOIN cliente cl ON pe.cliente_id = cl.id
+    JOIN detalle_pedido dp ON dp.pedido_id = pe.id
+    JOIN producto_presentacion pro_pre ON pro_pre.id = dp.producto_presentacion_id
+    JOIN producto pro ON pro.id = pro_pre.producto_id
+    JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
+    WHERE pe.id = v_pedido_id;
+
+END$$
+
+DELIMITER ;
+
+CALL ps_generar_pedido(2, 3, 2);
+
+SELECT 
+        cl.nombre AS Cliente,
+        pro.nombre AS Producto,
+        pro_pre.precio AS Precio,
+        mp.nombre AS Metodo_Pago
+    FROM pedido pe
+    JOIN cliente cl ON pe.cliente_id = cl.id
+    JOIN detalle_pedido dp ON dp.pedido_id = pe.id
+    JOIN producto_presentacion pro_pre ON pro_pre.id = dp.producto_presentacion_id
+    JOIN producto pro ON pro.id = pro_pre.producto_id
+    JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
+    WHERE pe.id = 2;
