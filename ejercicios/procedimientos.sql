@@ -1,4 +1,4 @@
--- Active: 1750013577539@@127.0.0.1@3307@pizzeria
+-- Active: 1750100490325@@127.0.0.1@3307@pizzeria
 
 SHOW TABLES;
 
@@ -223,3 +223,41 @@ SELECT
     JOIN producto pro ON pro.id = pro_pre.producto_id
     JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
     WHERE pe.id = 2;
+
+-- 4
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS ps_cancelar_pedido$$
+
+CREATE PROCEDURE ps_cancelar_pedido(
+    IN p_pedido_id INT
+)
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM pedido WHERE id = p_pedido_id) THEN
+        SIGNAL SQLSTATE '40002' 
+            SET MESSAGE_TEXT = 'El pedido seleccionado no existe.'; -- Verfica que exista en alguna fila, si no, lanza error
+    END IF;
+
+    UPDATE pedido SET estado = 'Cancelado' 
+    WHERE id = p_pedido_id;
+
+    DELETE FROM detalle_pedido WHERE pedido_id = p_pedido_id;
+
+    SELECT cl.nombre, mp.nombre, pe.estado
+    FROM pedido pe
+    JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
+    JOIN cliente cl ON cl.id = pe.cliente_id
+    WHERE pe.id = p_pedido_id;
+
+END $$
+
+DELIMITER ;
+
+CALL ps_cancelar_pedido(1);
+
+SELECT cl.nombre, mp.nombre, pe.estado
+    FROM pedido pe
+    JOIN metodo_pago mp ON mp.id = pe.metodo_pago_id
+    JOIN cliente cl ON cl.id = pe.cliente_id
+    WHERE pe.id = 1;

@@ -1,4 +1,4 @@
--- Active: 1750013577539@@127.0.0.1@3307@pizzeria
+-- Active: 1750100490325@@127.0.0.1@3307@pizzeria
 
 SHOW TABLES;
 
@@ -38,10 +38,10 @@ VALUES('Efectivo'),
 ('Tarjeta Credito'),
 ('Nequi');
 
-INSERT INTO pedido (fecha_recogida, total, cliente_id, metodo_pago_id)
-VALUES('2025-06-10 12:00:00', 35000, 1, 1),
-('2025-06-09 13:30:00', 50000, 2, 2),
-('2025-06-08 18:45:00', 20000, 3, 3);
+INSERT INTO pedido (fecha_recogida, total, cliente_id, metodo_pago_id, estado)
+VALUES('2025-06-10 12:00:00', 35000, 1, 1, 'Pendiente'),
+('2025-06-09 13:30:00', 50000, 2, 2, 'Enviado'),
+('2025-06-08 18:45:00', 20000, 3, 3, 'Enviado');
 
 INSERT INTO presentacion (nombre)
 VALUES('Pequena'),

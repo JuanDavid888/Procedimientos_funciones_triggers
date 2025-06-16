@@ -1,4 +1,4 @@
--- Active: 1750013577539@@127.0.0.1@3307@pizzeria
+-- Active: 1750100490325@@127.0.0.1@3307@pizzeria
 
 CREATE DATABASE pizzeria DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
@@ -84,6 +84,7 @@ CREATE TABLE `pedido`(
     `total` DECIMAL(10, 2) NOT NULL,
     `cliente_id` INT NOT NULL,
     `metodo_pago_id` INT NOT NULL,
+    `estado` ENUM('Enviado', 'Pendiente', 'Cancelado') DEFAULT 'Pendiente',
     INDEX (cliente_id,metodo_pago_id)
 );
 
