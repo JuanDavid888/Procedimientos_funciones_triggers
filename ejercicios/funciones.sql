@@ -186,3 +186,46 @@ END $$
 DELIMITER ;
 
 SELECT fn_obtener_stock_ingrediente(1) AS Stock_Ingrediente;
+
+-- 5
+DELIMITER $$
+
+DROP FUNCTION IF EXISTS fn_es_pizza_popular $$
+
+CREATE FUNCTION fn_es_pizza_popular(
+    p_producto_id INT
+)
+RETURNS BIT
+NOT DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE p_popular BIT;
+
+    IF NOT EXISTS (SELECT 1 FROM producto_presentacion WHERE id = p_producto_id) THEN
+        SIGNAL SQLSTATE '40002'
+            SET MESSAGE_TEXT = 'El producto seleccionado no existe'; -- Verfica que exista en alguna fila, si no, lanza error
+    END IF;
+
+    IF (
+        SELECT SUM(LENGTH(pro_pre.producto_id)) * dp.cantidad AS Producto_Comprado
+        FROM producto_presentacion pro_pre
+        JOIN detalle_pedido dp ON pro_pre.id = dp.producto_presentacion_id
+        WHERE pro_pre.producto_id = p_producto_id
+        ) > 50 THEN
+        SET p_popular = 1;
+    ELSE
+        SET p_popular = 0;
+    END IF;
+
+    RETURN p_popular;
+
+END $$
+
+DELIMITER ;
+
+SELECT fn_es_pizza_popular(2) AS Pizza_Popular;
+
+SELECT pro_pre.producto_id, SUM(LENGTH(pro_pre.producto_id) * dp.cantidad) AS Veces_Comprado 
+FROM producto_presentacion pro_pre
+JOIN detalle_pedido dp ON pro_pre.id = dp.producto_presentacion_id
+WHERE pro_pre.producto_id = 2
