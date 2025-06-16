@@ -120,13 +120,18 @@ CREATE FUNCTION fn_precio_final_pedido(
     p_pedido_id INT
 )
 RETURNS DECIMAL(10,2)
-NOT DETERMINISTIC
+DETERMINISTIC
 READS SQL DATA
 BEGIN
     DECLARE p_producto INT;
     DECLARE p_precio DECIMAL(10,2);
     DECLARE descuento DECIMAL(10,2);
     DECLARE p_cantidad INT;
+
+    IF NOT EXISTS (SELECT 1 FROM pedido WHERE id = p_pedido_id) THEN
+        SIGNAL SQLSTATE '40002'
+            SET MESSAGE_TEXT = 'El pedido seleccionado no existe'; -- Verfica que exista en alguna fila, si no, lanza error
+    END IF;
 
     SET p_producto = (
         SELECT producto_presentacion_id FROM detalle_pedido
@@ -149,3 +154,35 @@ END $$
 DELIMITER ;
 
 SELECT fn_precio_final_pedido(3) AS Total;
+
+-- 4
+DELIMITER $$
+
+DROP FUNCTION IF EXISTS fn_obtener_stock_ingrediente $$
+
+CREATE FUNCTION fn_obtener_stock_ingrediente(
+    p_ingrediente_id INT
+)
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE p_stock INT;
+
+    IF NOT EXISTS (SELECT 1 FROM ingrediente WHERE id = p_ingrediente_id) THEN
+        SIGNAL SQLSTATE '40002'
+            SET MESSAGE_TEXT = 'El pedido seleccionado no existe'; -- Verfica que exista en alguna fila, si no, lanza error
+    END IF;
+
+    SET p_stock = (
+        SELECT stock FROM ingrediente
+        WHERE id = p_ingrediente_id
+    );
+
+    RETURN p_stock;
+
+END $$
+
+DELIMITER ;
+
+SELECT fn_obtener_stock_ingrediente(1) AS Stock_Ingrediente;
