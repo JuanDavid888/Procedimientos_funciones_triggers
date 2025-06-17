@@ -118,3 +118,22 @@ END$$
 DELIMITER ;
 
 DELETE FROM producto WHERE id = 2;
+
+-- 5
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS tg_after_insert_pedido $$
+
+CREATE TRIGGER tg_after_insert_pedido
+AFTER INSERT ON factura
+FOR EACH ROW
+BEGIN
+
+    UPDATE pedido SET estado = 'Enviado' WHERE id = NEW.pedido_id;
+
+END $$
+
+DELIMITER ;
+
+INSERT INTO factura (total, fecha, pedido_id, cliente_id)
+VALUES(35000, '2025-06-10 12:05:00', 1, 1);
