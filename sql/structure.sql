@@ -1,4 +1,4 @@
--- Active: 1749726759608@@127.0.0.1@3307@pizzeria
+-- Active: 1750195161481@@127.0.0.1@3307@pizzeria
 
 CREATE DATABASE pizzeria DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
