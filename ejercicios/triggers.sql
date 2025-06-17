@@ -137,3 +137,36 @@ DELIMITER ;
 
 INSERT INTO factura (total, fecha, pedido_id, cliente_id)
 VALUES(35000, '2025-06-10 12:05:00', 1, 1);
+
+-- 6
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS tg_after_delete_detalle_pedido $$
+
+CREATE TRIGGER tg_after_delete_detalle_pedido
+AFTER DELETE ON detalle_pedido
+FOR EACH ROW
+BEGIN
+    DECLARE p_tipo INT;
+
+    SELECT pro.tipo_producto_id INTO p_tipo
+    FROM producto_presentacion pro_pre
+    JOIN producto pro ON pro_pre.producto_id = pro.id
+    WHERE pro_pre.id = OLD.producto_presentacion_id;
+
+    IF p_tipo = 2 THEN
+        -- Actualizar stock de ingredientes usados en esta pizza
+        UPDATE ingrediente i
+        JOIN ingrediente_producto i_pro ON i.id = i_pro.ingrediente_id
+        SET i.stock = i.stock + OLD.cantidad
+        WHERE i_pro.producto_id = (
+            SELECT producto_id FROM producto_presentacion
+            WHERE id = OLD.producto_presentacion_id
+        );
+    END IF;
+
+END $$
+
+DELIMITER ;
+
+DELETE FROM detalle_pedido WHERE id = 4;
