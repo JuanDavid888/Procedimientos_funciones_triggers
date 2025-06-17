@@ -88,3 +88,33 @@ DELIMITER ;
 UPDATE producto_presentacion
 SET precio = 20000
 WHERE id = 4;
+
+-- 4
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS tg_before_delete_pizza $$
+
+CREATE TRIGGER tg_before_delete_pizza
+BEFORE DELETE ON producto
+FOR EACH ROW
+BEGIN
+    DECLARE p_counter INT;
+
+    -- Validar si el producto esta en algun detalle_pedido
+    SELECT COUNT(*) INTO p_counter
+    FROM detalle_pedido dp
+    JOIN producto_presentacion pro_pre ON dp.producto_presentacion_id = pro_pre.id
+    JOIN producto pro ON pro_pre.producto_id = pro.id
+    WHERE pro_pre.producto_id = OLD.id AND pro.tipo_producto_id = 2;
+
+    IF p_counter > 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'La pizza seleccionada esta en un pedido. No se puede eliminar.';
+    END IF;
+    
+
+END$$
+
+DELIMITER ;
+
+DELETE FROM producto WHERE id = 2;
