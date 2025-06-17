@@ -22,6 +22,8 @@ DROP TABLE IF EXISTS combo;
 
 DROP TABLE IF EXISTS detalle_pedido;
 
+DROP TABLE IF EXISTS auditoria_precios;
+
 DROP TABLE IF EXISTS cliente;
 
 DROP TABLE IF EXISTS pedido;
@@ -140,6 +142,16 @@ CREATE TABLE `producto_presentacion`(
     INDEX (producto_id,presentacion_id)
 );
 
+CREATE TABLE `auditoria_precios` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `producto_id` INT NOT NULL,
+    `presentacion_id` INT NOT NULL,
+    `precio_anterior` DECIMAL(10,2) NOT NULL,
+    `precio_nuevo` DECIMAL(10,2) NOT NULL,
+    `fecha_cambio` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX (producto_id,presentacion_id)
+);
+
 -- Foraneas de las tablas
 
 ALTER TABLE
@@ -181,3 +193,11 @@ ALTER TABLE
 
 ALTER TABLE
     `factura` ADD CONSTRAINT `factura_pedido_id` FOREIGN KEY(`pedido_id`) REFERENCES `pedido`(`id`);
+
+ALTER TABLE 
+    `auditoria_precios` ADD CONSTRAINT `auditoria_precios_producto_id`
+FOREIGN KEY (`producto_id`) REFERENCES `producto`(`id`);
+
+ALTER TABLE 
+    `auditoria_precios` ADD CONSTRAINT `auditoria_precios_presentacion_id`
+FOREIGN KEY (`presentacion_id`) REFERENCES `presentacion`(`id`);

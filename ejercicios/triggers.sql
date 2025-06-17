@@ -59,3 +59,32 @@ VALUES (NOW(), 35000, 3, 3, 'Pendiente');
 
 INSERT INTO detalle_pedido (cantidad, pedido_id, producto_presentacion_id, tipo_combo)
 VALUES (1, 4, 5, 'Producto individual');
+
+-- 3
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS tg_after_update_pizza_precio $$
+
+CREATE TRIGGER tg_after_update_pizza_precio
+AFTER UPDATE ON producto_presentacion
+FOR EACH ROW
+BEGIN
+    DECLARE p_tipo INT;
+
+    SELECT tipo_producto_id INTO p_tipo
+    FROM producto
+    WHERE id = NEW.producto_id;
+
+    IF p_tipo = 2 AND OLD.precio <> NEW.precio THEN
+        INSERT INTO auditoria_precios
+        (producto_id, presentacion_id, precio_anterior, precio_nuevo, fecha_cambio)
+        VALUES(NEW.producto_id, NEW.presentacion_id, OLD.precio, NEW.precio, NOW());
+    END IF;
+
+END $$
+
+DELIMITER ;
+
+UPDATE producto_presentacion
+SET precio = 20000
+WHERE id = 4;
