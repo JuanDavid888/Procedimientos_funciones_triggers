@@ -1,4 +1,4 @@
--- Active: 1750195161481@@127.0.0.1@3307@pizzeria
+-- Active: 1750359843386@@127.0.0.1@3307@pizzeria
 
 SHOW TABLES;
 
@@ -170,3 +170,27 @@ END $$
 DELIMITER ;
 
 DELETE FROM detalle_pedido WHERE id = 4;
+
+-- 7
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS tg_after_update_ingrediente_stock $$
+
+CREATE TRIGGER tg_after_update_ingrediente_stock
+AFTER UPDATE ON ingrediente
+FOR EACH ROW
+BEGIN
+    DECLARE p_stock INT;
+
+    SELECT stock INTO p_stock
+    FROM ingrediente ing
+    WHERE ing.id = NEW.stock;
+
+    INSERT INTO notificacion_stock_bajo(fecha, ingrediente_id, stock_ingrediente)
+    VALUES(NOW(), NEW.id, NEW.stock);
+
+END $$
+
+DELIMITER ;
+
+UPDATE ingrediente SET stock = 1 WHERE id = 1;

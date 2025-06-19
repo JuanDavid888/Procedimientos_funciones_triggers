@@ -1,4 +1,4 @@
--- Active: 1750195161481@@127.0.0.1@3307@pizzeria
+-- Active: 1750359843386@@127.0.0.1@3307@pizzeria
 
 CREATE DATABASE pizzeria DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
@@ -39,6 +39,8 @@ DROP TABLE IF EXISTS tipo_producto;
 DROP TABLE IF EXISTS ingrediente;
 
 DROP TABLE IF EXISTS presentacion;
+
+DROP TABLE IF EXISTS notificacion_stock_bajo;
 
 -- Crear tablas
 
@@ -152,6 +154,13 @@ CREATE TABLE `auditoria_precios` (
     INDEX (producto_id,presentacion_id)
 );
 
+CREATE TABLE `notificacion_stock_bajo` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `ingrediente_id` INT NOT NULL,
+    `stock_ingrediente` INT NOT NULL
+);
+
 -- Foraneas de las tablas
 
 ALTER TABLE
@@ -201,3 +210,7 @@ FOREIGN KEY (`producto_id`) REFERENCES `producto`(`id`);
 ALTER TABLE 
     `auditoria_precios` ADD CONSTRAINT `auditoria_precios_presentacion_id`
 FOREIGN KEY (`presentacion_id`) REFERENCES `presentacion`(`id`);
+
+ALTER TABLE
+    `notificacion_stock_bajo` ADD CONSTRAINT `notificacion_stock_bajo_ingrediente_id`
+    FOREIGN KEY(`ingrediente_id`) REFERENCES `ingrediente`(`id`);

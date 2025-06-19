@@ -1,4 +1,4 @@
--- Active: 1750195161481@@127.0.0.1@3307@pizzeria
+-- Active: 1750359843386@@127.0.0.1@3307@pizzeria
 
 SHOW TABLES;
 
@@ -102,3 +102,8 @@ INSERT INTO auditoria_precios (producto_id, presentacion_id, precio_anterior, pr
 VALUES(1, 1, 5000, 7500, '2025-06-10 12:05:00'),
 (1, 2, 7500, 13500, '2025-06-10 12:05:00'),
 (1, 3, 13500, 20000, '2025-06-10 12:05:00');
+
+INSERT INTO notificacion_stock_bajo (fecha, ingrediente_id, cantidad_alerta)
+VALUES('2025-06-10 12:05:00', 1, 2),
+('2025-06-10 12:05:00', 2, 1),
+('2025-06-10 12:05:00', 3, 1);
